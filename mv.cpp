@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <stdio.h>
 #include "my_rm.h"
+#include "my_cp.h"
 using namespace std;
 
 bool file_exist(const string &file, struct stat &info);
@@ -50,9 +51,10 @@ int main(int argc, char *argv[])
     }
     else
     {
-        if(link(args.front().c_str(), args.back().c_str()) == -1)
-            perror("Error linking");
-        if(my_rm(args.front()) == -1)
+        my_cp(args);
+        args.pop_back();
+        args.push_back("-r");
+        if(my_rm(args) == -1)
             perror("Counld't remove old file");
     }
 
