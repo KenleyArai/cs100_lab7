@@ -4,13 +4,14 @@
 #include <vector>
 #include <stdio.h>
 #include <sys/stat.h>
-
+#include <dirent.h>
 using namespace std;
 
 int my_rm(int argc, char *argv[]);
 int my_rm(const string &path);
 int my_rm(const vector<string> &args);
 vector<string> find_all_dirs(const vector<string> &all_args);
+vector<string> get_contents(const string &path);
 bool find_recursive_flag(const vector<string> &all_args);
 
 
@@ -44,6 +45,9 @@ int my_rm(const vector<string> &args)
             perror("Error using stat");
         if(rec_flag && S_ISDIR(info.st_mode))
         {
+            vector<string> dir = get_contents(it);
+            dir.push_back("-r");
+            my_rm(dir);
             if(rmdir(it.c_str()) == -1)
                 perror("Error removing directory");
         }
@@ -55,6 +59,23 @@ int my_rm(const vector<string> &args)
     }
 
     return 0;
+}
+
+vector<string> get_contents(const string &path)
+{
+    vector<string> v;
+    DIR *dir;
+    struct dirent *ent;
+    if(NULL != (dir = opendir(path.c_str())))
+    {
+        while(NULL != (ent = readdir(dir)))
+            if(string(".") != ent->d_name && string("..") != ent->d_name)
+                v.push_back(path + "/" + ent->d_name);
+        closedir(dir);
+    }
+    else
+        perror("Error closing dir");
+    return v;
 }
 
 vector<string> find_all_dirs(const vector<string> &all_args)
